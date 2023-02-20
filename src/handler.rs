@@ -318,14 +318,26 @@ async fn logout_handler(
         );
     }
 
-    let cookie = Cookie::build("token", "")
+    let access_cookie = Cookie::build("access_token", "")
+        .path("/")
+        .max_age(ActixWebDuration::new(-1, 0))
+        .http_only(true)
+        .finish();
+    let refresh_cookie = Cookie::build("refresh_token", "")
+        .path("/")
+        .max_age(ActixWebDuration::new(-1, 0))
+        .http_only(true)
+        .finish();
+    let logged_in_cookie = Cookie::build("logged_in", "")
         .path("/")
         .max_age(ActixWebDuration::new(-1, 0))
         .http_only(true)
         .finish();
 
     HttpResponse::Ok()
-        .cookie(cookie)
+        .cookie(access_cookie)
+        .cookie(refresh_cookie)
+        .cookie(logged_in_cookie)
         .json(json!({"status": "success"}))
 }
 
