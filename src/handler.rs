@@ -14,7 +14,6 @@ use argon2::{
 };
 
 use redis::AsyncCommands;
-use serde_json::json;
 use sqlx::Row;
 use uuid::Uuid;
 
@@ -22,7 +21,7 @@ use uuid::Uuid;
 async fn health_checker_handler() -> impl Responder {
     const MESSAGE: &str = "Actix-web and Postgres: JWT Access and Refresh Tokens";
 
-    HttpResponse::Ok().json(json!({"status": "success", "message": MESSAGE}))
+    HttpResponse::Ok().json(serde_json::json!({"status": "success", "message": MESSAGE}))
 }
 
 #[post("/auth/register")]
@@ -85,8 +84,9 @@ async fn login_user_handler(
     let user = match query_result {
         Some(user) => user,
         None => {
-            return HttpResponse::BadRequest()
-                .json(json!({"status": "fail", "message": "Invalid email or password"}));
+            return HttpResponse::BadRequest().json(
+                serde_json::json!({"status": "fail", "message": "Invalid email or password"}),
+            );
         }
     };
 
@@ -98,7 +98,7 @@ async fn login_user_handler(
 
     if !is_valid {
         return HttpResponse::BadRequest()
-            .json(json!({"status": "fail", "message": "Invalid email or password"}));
+            .json(serde_json::json!({"status": "fail", "message": "Invalid email or password"}));
     }
 
     let access_token_details = match token::generate_jwt_token(
@@ -109,7 +109,7 @@ async fn login_user_handler(
         Ok(token_details) => token_details,
         Err(e) => {
             return HttpResponse::BadGateway()
-                .json(json!({"status": "fail", "message": format_args!("{}", e)}));
+                .json(serde_json::json!({"status": "fail", "message": format_args!("{}", e)}));
         }
     };
 
@@ -121,7 +121,7 @@ async fn login_user_handler(
         Ok(token_details) => token_details,
         Err(e) => {
             return HttpResponse::BadGateway()
-                .json(json!({"status": "fail", "message": format_args!("{}", e)}));
+                .json(serde_json::json!({"status": "fail", "message": format_args!("{}", e)}));
         }
     };
 
@@ -129,7 +129,7 @@ async fn login_user_handler(
         Ok(redis_client) => redis_client,
         Err(e) => {
             return HttpResponse::InternalServerError()
-                .json(json!({"status": "fail", "message": format_args!("{}", e)}));
+                .json(serde_json::json!({"status": "fail", "message": format_args!("{}", e)}));
         }
     };
 
@@ -143,7 +143,7 @@ async fn login_user_handler(
 
     if let Err(e) = access_result {
         return HttpResponse::UnprocessableEntity()
-            .json(json!({"status": "error", "message": format_args!("{}", e)}));
+            .json(serde_json::json!({"status": "error", "message": format_args!("{}", e)}));
     }
 
     let refresh_result: redis::RedisResult<()> = redis_client
@@ -156,7 +156,7 @@ async fn login_user_handler(
 
     if let Err(e) = refresh_result {
         return HttpResponse::UnprocessableEntity()
-            .json(json!({"status": "error", "message": format_args!("{}", e)}));
+            .json(serde_json::json!({"status": "error", "message": format_args!("{}", e)}));
     }
 
     let access_cookie = Cookie::build("access_token", access_token_details.token.clone().unwrap())
@@ -182,7 +182,7 @@ async fn login_user_handler(
         .cookie(access_cookie)
         .cookie(refresh_cookie)
         .cookie(logged_in_cookie)
-        .json(json!({"status": "success", "access_token": access_token_details.token.unwrap()}))
+        .json(serde_json::json!({"status": "success", "access_token": access_token_details.token.unwrap()}))
 }
 
 #[get("/auth/refresh")]
@@ -195,7 +195,8 @@ async fn refresh_access_token_handler(
     let refresh_token = match req.cookie("refresh_token") {
         Some(c) => c.value().to_string(),
         None => {
-            return HttpResponse::Forbidden().json(json!({"status": "fail", "message": message}));
+            return HttpResponse::Forbidden()
+                .json(serde_json::json!({"status": "fail", "message": message}));
         }
     };
 
@@ -204,8 +205,9 @@ async fn refresh_access_token_handler(
         {
             Ok(token_details) => token_details,
             Err(e) => {
-                return HttpResponse::Forbidden()
-                    .json(json!({"status": "fail", "message": format_args!("{:?}", e)}));
+                return HttpResponse::Forbidden().json(
+                    serde_json::json!({"status": "fail", "message": format_args!("{:?}", e)}),
+                );
             }
         };
 
@@ -214,7 +216,7 @@ async fn refresh_access_token_handler(
         Ok(redis_client) => redis_client,
         Err(e) => {
             return HttpResponse::Forbidden().json(
-                json!({"status": "fail", "message": format!("Could not connect to Redis: {}", e)}),
+                serde_json::json!({"status": "fail", "message": format!("Could not connect to Redis: {}", e)}),
             );
         }
     };
@@ -225,7 +227,8 @@ async fn refresh_access_token_handler(
     let user_id = match redis_result {
         Ok(value) => value,
         Err(_) => {
-            return HttpResponse::Forbidden().json(json!({"status": "fail", "message": message}));
+            return HttpResponse::Forbidden()
+                .json(serde_json::json!({"status": "fail", "message": message}));
         }
     };
 
@@ -237,7 +240,7 @@ async fn refresh_access_token_handler(
 
     if query_result.is_none() {
         return HttpResponse::Forbidden()
-            .json(json!({"status": "fail", "message": "the user belonging to this token no logger exists"}));
+            .json(serde_json::json!({"status": "fail", "message": "the user belonging to this token no logger exists"}));
     }
 
     let user = query_result.unwrap();
@@ -250,7 +253,7 @@ async fn refresh_access_token_handler(
         Ok(token_details) => token_details,
         Err(e) => {
             return HttpResponse::BadGateway()
-                .json(json!({"status": "fail", "message": format_args!("{:?}", e)}));
+                .json(serde_json::json!({"status": "fail", "message": format_args!("{:?}", e)}));
         }
     };
 
@@ -264,7 +267,7 @@ async fn refresh_access_token_handler(
 
     if redis_result.is_err() {
         return HttpResponse::UnprocessableEntity().json(
-            json!({"status": "error", "message": format_args!("{:?}", redis_result.unwrap_err())}),
+            serde_json::json!({"status": "error", "message": format_args!("{:?}", redis_result.unwrap_err())}),
         );
     }
 
@@ -274,9 +277,16 @@ async fn refresh_access_token_handler(
         .http_only(true)
         .finish();
 
+    let logged_in_cookie = Cookie::build("logged_in", "true")
+        .path("/")
+        .max_age(ActixWebDuration::new(data.env.access_token_max_age * 60, 0))
+        .http_only(false)
+        .finish();
+
     HttpResponse::Ok()
         .cookie(access_cookie)
-        .json(json!({"status": "success", "access_token": access_token_details.token.unwrap()}))
+        .cookie(logged_in_cookie)
+        .json(serde_json::json!({"status": "success", "access_token": access_token_details.token.unwrap()}))
 }
 
 #[get("/auth/logout")]
@@ -290,7 +300,8 @@ async fn logout_handler(
     let refresh_token = match req.cookie("refresh_token") {
         Some(c) => c.value().to_string(),
         None => {
-            return HttpResponse::Forbidden().json(json!({"status": "fail", "message": message}));
+            return HttpResponse::Forbidden()
+                .json(serde_json::json!({"status": "fail", "message": message}));
         }
     };
 
@@ -299,8 +310,9 @@ async fn logout_handler(
         {
             Ok(token_details) => token_details,
             Err(e) => {
-                return HttpResponse::Forbidden()
-                    .json(json!({"status": "fail", "message": format_args!("{:?}", e)}));
+                return HttpResponse::Forbidden().json(
+                    serde_json::json!({"status": "fail", "message": format_args!("{:?}", e)}),
+                );
             }
         };
 
@@ -314,7 +326,7 @@ async fn logout_handler(
 
     if redis_result.is_err() {
         return HttpResponse::UnprocessableEntity().json(
-            json!({"status": "error", "message": format_args!("{:?}", redis_result.unwrap_err())}),
+            serde_json::json!({"status": "error", "message": format_args!("{:?}", redis_result.unwrap_err())}),
         );
     }
 
@@ -338,7 +350,7 @@ async fn logout_handler(
         .cookie(access_cookie)
         .cookie(refresh_cookie)
         .cookie(logged_in_cookie)
-        .json(json!({"status": "success"}))
+        .json(serde_json::json!({"status": "success"}))
 }
 
 #[get("/users/me")]
