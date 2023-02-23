@@ -1797,7 +1797,6 @@ dependencies = [
  "dotenv",
  "env_logger",
  "futures",
- "futures-util",
  "jsonwebtoken",
  "rand_core",
  "redis",

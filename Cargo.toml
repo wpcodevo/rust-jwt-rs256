@@ -14,7 +14,6 @@ chrono = { version = "0.4.23", features = ["serde"] }
 dotenv = "0.15.0"
 env_logger = "0.10.0"
 futures = "0.3.26"
-futures-util = "0.3.26"
 jsonwebtoken = "8.2.0"
 rand_core = { version = "0.6.4", features = ["std"] }
 redis = { version = "0.22.3", features = ["tokio-comp"] }

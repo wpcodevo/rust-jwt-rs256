@@ -25,7 +25,8 @@ install:
 	cargo add sqlx --features "runtime-async-std-native-tls postgres chrono uuid"
 	cargo add jsonwebtoken
 	cargo add argon2
-	cargo add futures_util
+	cargo add base64
+	cargo add futures
 	cargo add rand_core --features "std"
 	cargo add redis --features "tokio-comp"
 	# HotReload

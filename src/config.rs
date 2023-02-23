@@ -1,3 +1,7 @@
+fn get_env_var(var_name: &str) -> String {
+    std::env::var(var_name).unwrap_or_else(|_| panic!("{} must be set", var_name))
+}
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub database_url: String,
@@ -17,25 +21,20 @@ pub struct Config {
 
 impl Config {
     pub fn init() -> Config {
-        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let redis_url = std::env::var("REDIS_URL").expect("REDIS_URL must be set");
-        let client_origin = std::env::var("CLIENT_ORIGIN").expect("CLIENT_ORIGIN must be set");
-        let access_token_private_key = std::env::var("ACCESS_TOKEN_PRIVATE_KEY")
-            .expect("ACCESS_TOKEN_PRIVATE_KEY must be set");
-        let access_token_public_key =
-            std::env::var("ACCESS_TOKEN_PUBLIC_KEY").expect("ACCESS_TOKEN_PUBLIC_KEY must be set");
-        let refresh_token_private_key = std::env::var("REFRESH_TOKEN_PRIVATE_KEY")
-            .expect("REFRESH_TOKEN_PRIVATE_KEY must be set");
-        let refresh_token_public_key = std::env::var("REFRESH_TOKEN_PUBLIC_KEY")
-            .expect("REFRESH_TOKEN_PUBLIC_KEY must be set");
-        let access_token_expires_in =
-            std::env::var("ACCESS_TOKEN_EXPIRED_IN").expect("ACCESS_TOKEN_EXPIRED_IN must be set");
-        let refresh_token_expires_in = std::env::var("REFRESH_TOKEN_EXPIRED_IN")
-            .expect("REFRESH_TOKEN_EXPIRED_IN must be set");
-        let access_token_max_age =
-            std::env::var("ACCESS_TOKEN_MAXAGE").expect("ACCESS_TOKEN_MAXAGE must be set");
-        let refresh_token_max_age =
-            std::env::var("REFRESH_TOKEN_MAXAGE").expect("REFRESH_TOKEN_MAXAGE must be set");
+        let database_url = get_env_var("DATABASE_URL");
+        let redis_url = get_env_var("REDIS_URL");
+        let client_origin = get_env_var("CLIENT_ORIGIN");
+
+        let access_token_private_key = get_env_var("ACCESS_TOKEN_PRIVATE_KEY");
+        let access_token_public_key = get_env_var("ACCESS_TOKEN_PUBLIC_KEY");
+        let access_token_expires_in = get_env_var("ACCESS_TOKEN_EXPIRED_IN");
+        let access_token_max_age = get_env_var("ACCESS_TOKEN_MAXAGE");
+
+        let refresh_token_private_key = get_env_var("REFRESH_TOKEN_PRIVATE_KEY");
+        let refresh_token_public_key = get_env_var("REFRESH_TOKEN_PUBLIC_KEY");
+        let refresh_token_expires_in = get_env_var("REFRESH_TOKEN_EXPIRED_IN");
+        let refresh_token_max_age = get_env_var("REFRESH_TOKEN_MAXAGE");
+
         Config {
             database_url,
             redis_url,
