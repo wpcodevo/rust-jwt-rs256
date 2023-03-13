@@ -19,7 +19,7 @@ use uuid::Uuid;
 
 #[get("/healthchecker")]
 async fn health_checker_handler() -> impl Responder {
-    const MESSAGE: &str = "Actix-web and Postgres: JWT Access and Refresh Tokens";
+    const MESSAGE: &str = "Actix-web and Postgres: JWT RS256 Access and Refresh Tokens";
 
     HttpResponse::Ok().json(serde_json::json!({"status": "success", "message": MESSAGE}))
 }
