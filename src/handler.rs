@@ -354,19 +354,11 @@ async fn logout_handler(
 }
 
 #[get("/users/me")]
-async fn get_me_handler(
-    data: web::Data<AppState>,
-    jwt_guard: jwt_auth::JwtMiddleware,
-) -> impl Responder {
-    let user = sqlx::query_as!(User, "SELECT * FROM users WHERE id = $1", jwt_guard.user.id)
-        .fetch_one(&data.db)
-        .await
-        .unwrap();
-
+async fn get_me_handler(jwt_guard: jwt_auth::JwtMiddleware) -> impl Responder {
     let json_response = serde_json::json!({
         "status":  "success",
         "data": serde_json::json!({
-            "user": filter_user_record(&user)
+            "user": filter_user_record(&jwt_guard.user)
         })
     });
 
